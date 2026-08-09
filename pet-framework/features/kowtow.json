@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "kowtow",
+  "displayName": "磕头",
+  "description": "播放正面跪姿磕头动作，并显示可配置气泡。",
+  "action": "sit",
+  "frameCount": 4,
+  "animation": {
+    "durations": [260, 280, 320, 2200],
+    "loop": false,
+    "holdLastFrame": true
+  },
+  "defaults": {
+    "label": "磕头",
+    "message": "",
+    "speech": "",
+    "duration": 3800
+  },
+  "limits": {
+    "label": 24,
+    "message": 80,
+    "speech": 20,
+    "minDuration": 600,
+    "maxDuration": 10000
+  },
+  "contextMenuAction": {
+    "id": "kowtow",
+    "label": "${label}",
+    "action": "sit",
+    "message": "${message}",
+    "speech": "${speech}",
+    "duration": "${duration}"
+  },
+  "imagePrompt": "Create exactly four front-facing frames: upright kneel with hands on thighs, leaning forward while hands lower, hands supporting on the ground with forehead lowered respectfully, and returning toward upright. Keep identity, scale, visual centroid and knee baseline stable; keep hair, hands, fingers, legs and feet complete."
+}

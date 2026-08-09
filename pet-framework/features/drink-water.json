@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "id": "drink-water",
+  "displayName": "喝水",
+  "description": "播放独立喝水动作；气泡和系统语音默认关闭。",
+  "action": "drink-water",
+  "frameCount": 6,
+  "animation": {
+    "durations": [
+      260,
+      280,
+      320,
+      520,
+      420,
+      1300
+    ],
+    "loop": false,
+    "holdLastFrame": true
+  },
+  "defaults": {
+    "label": "喝点水",
+    "message": "",
+    "speech": "",
+    "duration": 4200
+  },
+  "limits": {
+    "label": 24,
+    "message": 80,
+    "speech": 20,
+    "minDuration": 600,
+    "maxDuration": 10000
+  },
+  "contextMenuAction": {
+    "id": "drink-water",
+    "label": "${label}",
+    "action": "drink-water",
+    "message": "${message}",
+    "speech": "${speech}",
+    "duration": "${duration}"
+  },
+  "imagePrompt": "Create exactly six temporally ordered frames of the same subject naturally approaching a small plain water container, lowering toward it, drinking, pausing, lifting the head, and returning toward the starting pose. Keep identity, body scale, visual centroid and ground baseline stable. Keep the complete subject and container inside every cell; no text, labels, speech bubbles, floor or decorative props."
+}

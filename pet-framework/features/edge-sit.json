@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "edge-sit",
+  "displayName": "屏幕边缘坐姿",
+  "description": "从站姿自然坐下，保持轻松的屏幕边缘陪伴姿态。",
+  "action": "edge-sit",
+  "frameCount": 4,
+  "animation": {
+    "durations": [260, 300, 360, 1900],
+    "loop": false,
+    "holdLastFrame": true
+  },
+  "defaults": {
+    "label": "坐一会儿",
+    "message": "",
+    "speech": "",
+    "duration": 4200
+  },
+  "limits": {
+    "label": 24,
+    "message": 80,
+    "speech": 20,
+    "minDuration": 600,
+    "maxDuration": 10000
+  },
+  "contextMenuAction": {
+    "id": "edge-sit",
+    "label": "${label}",
+    "action": "edge-sit",
+    "message": "${message}",
+    "speech": "${speech}",
+    "duration": "${duration}"
+  },
+  "imagePrompt": "Create exactly four front-facing transition frames: relaxed standing, carefully lowering while bending knees, settling into a natural seated pose with hands relaxed beside the body, and a stable seated hold with one very small gentle lower-leg swing. Depict an implied invisible screen edge only through the pose; do not draw a chair, ledge, floor or prop. Keep identity, torso visual mass, camera distance and horizontal centroid stable, and keep the complete head, hair, hands, legs and feet visible."
+}

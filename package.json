@@ -1,6 +1,6 @@
 {
   "name": "desktop-pet-player",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "通用 Windows 桌面宠物播放器，支持安全导入 .petpack 和生成客户专属便携版。",
   "main": "src/main-v3.js",
   "author": "redniu123 and contributors",
@@ -10,14 +10,16 @@
   },
   "scripts": {
     "test": "npm run test:js && npm run test:python && npm run validate:demo",
-    "test:js": "node --check src/main-v3.js && node --check src/preload-v3.js && node --check src/renderer-v3.js && node --check src/petpack-validator.js && node --check scripts/build-customer.js && node scripts/test-renderer-interaction.js && node scripts/test-petpack-security.js",
+    "test:js": "node --check src/main-v3.js && node --check src/preload-v3.js && node --check src/renderer-v3.js && node --check src/petpack-validator.js && node --check scripts/build-customer.js && node --check scripts/make-human-pet.js && node scripts/test-renderer-interaction.js && node scripts/test-petpack-security.js && node scripts/test-human-pet-framework.js",
     "test:python": "python -m unittest discover -s skills/desktop-pet-maker/scripts -p test_*.py -v",
     "test:regression": "node scripts/test-renderer-interaction.js && python skills/desktop-pet-maker/scripts/test_process_animation_strips.py -v",
     "validate:demo": "python skills/desktop-pet-maker/scripts/petpack_tool.py validate pets/packages/xiaogou.petpack",
     "start": "electron .",
     "pack": "electron-builder --dir --publish never",
     "build": "electron-builder --win portable --publish never",
-    "build:customer": "node scripts/build-customer.js"
+    "build:customer": "node scripts/build-customer.js",
+    "make:human": "node scripts/make-human-pet.js",
+    "test:human-framework": "node scripts/test-human-pet-framework.js"
   },
   "devDependencies": {
     "electron": "43.2.0",

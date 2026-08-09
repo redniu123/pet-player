@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "lai-rongjie",
+  "name": "赖荣杰",
+  "description": "真人照片风格桌面宠物。",
+  "personality": ["阳光", "活泼"],
+  "packageVersion": "1.0.0",
+  "framesDir": "pets/work/lai-rongjie/frames",
+  "preview": "pets/work/lai-rongjie/preview.png",
+  "outputDir": "pets/work/lai-rongjie/package",
+  "petpackOutput": "pets/packages/lai-rongjie.petpack",
+  "features": [
+    {
+      "id": "call-relative",
+      "options": {
+        "label": "叫哥哥",
+        "message": "赖荣杰哥哥",
+        "speech": "赖荣杰哥哥"
+      }
+    },
+    {
+      "id": "kowtow"
+    }
+  ]
+}

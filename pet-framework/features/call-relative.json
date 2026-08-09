@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "call-relative",
+  "displayName": "称呼",
+  "description": "面向用户说出自定义称呼，可选显示气泡和使用系统语音。",
+  "action": "reaction",
+  "frameCount": 4,
+  "animation": {
+    "durations": [260, 300, 420, 1600],
+    "loop": false,
+    "holdLastFrame": true
+  },
+  "defaults": {
+    "label": "称呼",
+    "message": "",
+    "speech": "",
+    "duration": 3600
+  },
+  "limits": {
+    "label": 24,
+    "message": 80,
+    "speech": 20,
+    "minDuration": 600,
+    "maxDuration": 10000
+  },
+  "contextMenuAction": {
+    "id": "call-relative",
+    "label": "${label}",
+    "action": "reaction",
+    "message": "${message}",
+    "speech": "${speech}",
+    "duration": "${duration}"
+  },
+  "imagePrompt": "Create exactly four front-facing neutral standing speech frames: mouth closed, beginning to open, naturally open while saying the configured short phrase, and returning almost closed. Keep body scale, head position, shoulders, visual centroid and foot baseline stationary. Do not bake speech bubbles or text into the image."
+}

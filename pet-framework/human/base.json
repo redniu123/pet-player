@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "mode": "human",
+  "requiredCoreActions": {
+    "idle": 4,
+    "walk": 6
+  },
+  "compatibilityFallbacks": {
+    "sit": "idle",
+    "sleep": "idle",
+    "reaction": "idle"
+  },
+  "animations": {
+    "idle": { "durations": [420, 300, 260, 420], "loop": true },
+    "walk": { "durations": [160, 160, 160, 160, 160, 160], "loop": true },
+    "sit": { "durations": [420, 300, 260, 420], "loop": false, "holdLastFrame": true },
+    "sleep": { "durations": [420, 300, 260, 420], "loop": true, "scale": 1.0 },
+    "reaction": { "durations": [420, 300, 260, 420], "loop": false, "holdLastFrame": true }
+  },
+  "behavior": {
+    "random": [
+      { "state": "walk", "weight": 72, "minDuration": 1800, "maxDuration": 4800 },
+      { "state": "idle", "weight": 28, "minDuration": 2200, "maxDuration": 4200 }
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "fan-greeting",
+  "displayName": "粉丝问候",
+  "description": "播放尊重人物形象的探头、眨眼和挥手问候，并显示可配置的纸条式气泡。",
+  "action": "fan-greeting",
+  "frameCount": 4,
+  "animation": {
+    "durations": [260, 300, 520, 1700],
+    "loop": false,
+    "holdLastFrame": true
+  },
+  "defaults": {
+    "label": "传纸条",
+    "message": "",
+    "speech": "",
+    "duration": 3800
+  },
+  "limits": {
+    "label": 24,
+    "message": 80,
+    "speech": 20,
+    "minDuration": 600,
+    "maxDuration": 10000
+  },
+  "contextMenuAction": {
+    "id": "fan-greeting",
+    "label": "${label}",
+    "action": "fan-greeting",
+    "message": "${message}",
+    "speech": "${speech}",
+    "duration": "${duration}"
+  },
+  "imagePrompt": "Create exactly four front-facing standing greeting frames: attentive neutral pose, a small curious head-and-shoulder lean as if peeking toward the viewer, one natural wink with a restrained cat-paw-style wave near the shoulder, and a warm closed-mouth smile returning toward the first pose. Keep the full body complete and stationary, with identical torso visual mass, camera distance, centroid and foot baseline. Do not add writing, signs, speech bubbles, hearts, props or text to the artwork."
+}

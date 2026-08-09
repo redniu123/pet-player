@@ -5,6 +5,7 @@ const path = require('path');
 const AdmZip = require('adm-zip');
 
 const REQUIRED_ACTIONS = Object.freeze({ idle: 4, walk: 6, sit: 4, sleep: 4, reaction: 4 });
+const ACTION_ID_PATTERN = /^[a-z0-9][a-z0-9-]{1,31}$/;
 const PET_ID_PATTERN = /^[a-z0-9][a-z0-9-]{1,47}$/;
 const MAX_ARCHIVE_ENTRIES = 300;
 const MAX_UNCOMPRESSED_BYTES = 200 * 1024 * 1024;
@@ -46,6 +47,41 @@ function referencedFiles(manifest) {
   return referenced;
 }
 
+function validateMenuStep(item, manifest, label) {
+  if (!item || typeof item !== 'object' || Array.isArray(item)) throw new Error(`${label}格式不正确`);
+  if (typeof item.action !== 'string' || !manifest.animations[item.action]) throw new Error(`${label}引用了不存在的动画：${item.action}`);
+  if (item.message !== undefined && (typeof item.message !== 'string' || item.message.length > 80)) throw new Error(`${label} message 不能超过 80 个字符`);
+  if (item.messages !== undefined) {
+    if (!Array.isArray(item.messages) || !item.messages.length || item.messages.length > 12) throw new Error(`${label} messages 必须是 1 到 12 项的数组`);
+    if (item.messages.some((message) => typeof message !== 'string' || !message.trim() || message.length > 80)) throw new Error(`${label} messages 必须是 1 到 80 个字符的非空字符串`);
+    if (new Set(item.messages).size !== item.messages.length) throw new Error(`${label} messages 不能重复`);
+  }
+  if (item.message !== undefined && item.messages !== undefined) throw new Error(`${label} 不能同时配置 message 和 messages`);
+  if (item.speech !== undefined && (typeof item.speech !== 'string' || item.speech.length > 20)) throw new Error(`${label} speech 不能超过 20 个字符`);
+  if (item.duration !== undefined && (!Number.isInteger(item.duration) || item.duration < 600 || item.duration > 3600000)) {
+    throw new Error(`${label} duration 必须为 600 到 3600000 毫秒`);
+  }
+}
+
+function validateOptionalDialogue(item, label) {
+  if (item.message !== undefined && (typeof item.message !== 'string' || item.message.length > 80)) {
+    throw new Error(`${label} message 不能超过 80 个字符`);
+  }
+  if (item.messages !== undefined) {
+    if (!Array.isArray(item.messages) || !item.messages.length || item.messages.length > 12) {
+      throw new Error(`${label} messages 必须是 1 到 12 项的数组`);
+    }
+    if (item.messages.some((message) => typeof message !== 'string' || !message.trim() || message.length > 80)) {
+      throw new Error(`${label} messages 必须是 1 到 80 个字符的非空字符串`);
+    }
+    if (new Set(item.messages).size !== item.messages.length) throw new Error(`${label} messages 不能重复`);
+  }
+  if (item.message !== undefined && item.messages !== undefined) throw new Error(`${label} 不能同时配置 message 和 messages`);
+  if (item.speech !== undefined && (typeof item.speech !== 'string' || item.speech.length > 20)) {
+    throw new Error(`${label} speech 不能超过 20 个字符`);
+  }
+}
+
 function validateManifest(manifest, root = '', requireFiles = false) {
   if (!manifest || manifest.schemaVersion !== 1) throw new Error('只支持 schemaVersion 1');
   if (!PET_ID_PATTERN.test(String(manifest.id || ''))) throw new Error('宠物 id 不合法');
@@ -66,12 +102,24 @@ function validateManifest(manifest, root = '', requireFiles = false) {
     throw new Error('animations 缺失');
   }
 
+  const animations = Object.entries(manifest.animations);
+  if (animations.length > 32) throw new Error('animations 不能超过 32 项');
   for (const [action, expected] of Object.entries(REQUIRED_ACTIONS)) {
-    const animation = manifest.animations[action];
-    if (!animation || !Array.isArray(animation.frames) || animation.frames.length !== expected) {
+    if (!manifest.animations[action]) throw new Error(`${action} 必须包含 ${expected} 帧`);
+  }
+  for (const [action, animation] of animations) {
+    if (!ACTION_ID_PATTERN.test(action)) throw new Error(`动画 id 不合法：${action}`);
+    if (!animation || typeof animation !== 'object' || Array.isArray(animation) || !Array.isArray(animation.frames)) {
+      throw new Error(`${action} 动画配置格式不正确`);
+    }
+    const expected = REQUIRED_ACTIONS[action];
+    if (expected && animation.frames.length !== expected) {
       throw new Error(`${action} 必须包含 ${expected} 帧`);
     }
-    if (!Array.isArray(animation.durations) || animation.durations.length !== expected) {
+    if (!expected && (animation.frames.length < 2 || animation.frames.length > 12)) {
+      throw new Error(`${action} 可选动画必须包含 2 到 12 帧`);
+    }
+    if (!Array.isArray(animation.durations) || animation.durations.length !== animation.frames.length) {
       throw new Error(`${action} 的 durations 数量不匹配`);
     }
     if (animation.durations.some((value) => !Number.isInteger(value) || value < 40 || value > 10000)) {
@@ -91,8 +139,8 @@ function validateManifest(manifest, root = '', requireFiles = false) {
   }
 
   if (manifest.contextMenuActions !== undefined) {
-    if (!Array.isArray(manifest.contextMenuActions) || manifest.contextMenuActions.length > 8) {
-      throw new Error('contextMenuActions 必须是最多 8 项的数组');
+    if (!Array.isArray(manifest.contextMenuActions) || manifest.contextMenuActions.length > 16) {
+      throw new Error('contextMenuActions 必须是最多 16 项的数组');
     }
     const actionIds = new Set();
     for (const item of manifest.contextMenuActions) {
@@ -102,10 +150,20 @@ function validateManifest(manifest, root = '', requireFiles = false) {
       }
       actionIds.add(item.id);
       if (typeof item.label !== 'string' || !item.label.trim() || item.label.length > 24) throw new Error('右键动作 label 必须为 1 到 24 个字符');
-      if (typeof item.action !== 'string' || !manifest.animations[item.action]) throw new Error('右键动作引用了不存在的动画：' + item.action);
-      if (item.message !== undefined && (typeof item.message !== 'string' || item.message.length > 80)) throw new Error('右键动作 message 不能超过 80 个字符');
-      if (item.speech !== undefined && (typeof item.speech !== 'string' || item.speech.length > 20)) throw new Error('右键动作 speech 不能超过 20 个字符');
-      if (item.duration !== undefined && (!Number.isInteger(item.duration) || item.duration < 600 || item.duration > 10000)) throw new Error('右键动作 duration 必须为 600 到 10000 毫秒');
+      if (item.sequence !== undefined) {
+        if (item.action !== undefined || item.message !== undefined || item.messages !== undefined || item.speech !== undefined || item.duration !== undefined) {
+          throw new Error('序列右键动作不能同时配置单步字段');
+        }
+        if (!Array.isArray(item.sequence) || !item.sequence.length || item.sequence.length > 8) throw new Error('右键动作 sequence 必须是 1 到 8 步');
+        let totalDuration = 0;
+        for (const [index, step] of item.sequence.entries()) {
+          validateMenuStep(step, manifest, `右键动作 sequence[${index}]`);
+          totalDuration += Number.isInteger(step.duration) ? step.duration : 3000;
+        }
+        if (totalDuration > 60000) throw new Error('右键动作 sequence 总时长不能超过 60000 毫秒');
+      } else {
+        validateMenuStep(item, manifest, '右键动作');
+      }
     }
   }
 
@@ -113,12 +171,13 @@ function validateManifest(manifest, root = '', requireFiles = false) {
     if (!Array.isArray(manifest.behavior.random) || !manifest.behavior.random.length || manifest.behavior.random.length > 20) {
       throw new Error('behavior.random 必须是 1 到 20 项的数组');
     }
-    for (const item of manifest.behavior.random) {
+    for (const [index, item] of manifest.behavior.random.entries()) {
       if (!item || typeof item !== 'object' || !manifest.animations[item.state]) throw new Error('behavior.random 引用了不存在的动画');
       if (!Number.isFinite(item.weight) || item.weight <= 0 || item.weight > 10000) throw new Error('behavior.random weight 不合法');
       if (!Number.isFinite(item.minDuration) || !Number.isFinite(item.maxDuration) || item.minDuration < 600 || item.maxDuration > 60000 || item.maxDuration < item.minDuration) {
         throw new Error('behavior.random duration 不合法');
       }
+      validateOptionalDialogue(item, `behavior.random[${index}]`);
     }
   }
 

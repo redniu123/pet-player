@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "stretch",
+  "displayName": "伸懒腰",
+  "description": "播放原地伸展动作，适合作为安静的互动功能。",
+  "action": "stretch",
+  "frameCount": 4,
+  "animation": {
+    "durations": [
+      280,
+      360,
+      620,
+      1400
+    ],
+    "loop": false,
+    "holdLastFrame": true
+  },
+  "defaults": {
+    "label": "伸个懒腰",
+    "message": "",
+    "speech": "",
+    "duration": 3600
+  },
+  "limits": {
+    "label": 24,
+    "message": 80,
+    "speech": 20,
+    "minDuration": 600,
+    "maxDuration": 10000
+  },
+  "contextMenuAction": {
+    "id": "stretch",
+    "label": "${label}",
+    "action": "stretch",
+    "message": "${message}",
+    "speech": "${speech}",
+    "duration": "${duration}"
+  },
+  "imagePrompt": "Create exactly four temporally ordered frames of the same subject beginning a natural stretch, extending the body, holding the fullest comfortable stretch, and returning toward the neutral pose. Keep identity, opaque visual mass, camera distance, centroid and baseline stable; keep every extremity complete and inside its cell. No props, text, labels or speech bubbles."
+}

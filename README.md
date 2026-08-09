@@ -1,4 +1,4 @@
-# Desktop Pet Player 0.4.0
+# Desktop Pet Player 0.5.0
 
 一个面向 Windows 的通用透明桌面宠物播放器。播放器不绑定某只宠物；宠物名称、性格、动画、行为和资源路径全部来自可移植的 `.petpack` 包。
 
@@ -13,7 +13,7 @@
 
 ## 直接使用
 
-从 GitHub Releases 下载 `Desktop-Pet-Player-0.4.0.exe` 后双击运行。首次启动会安装仓库内置的示例宠物包。
+从 GitHub Releases 下载 `Desktop-Pet-Player-0.5.0.exe` 后双击运行。首次启动会安装仓库内置的示例宠物包。
 
 当前公开构建未进行 Windows 代码签名，Windows SmartScreen 可能显示未知发布者。请核对 Release 同时提供的 `build-report.json` 中的 SHA-256。
 
@@ -36,7 +36,7 @@ npm start
 npm run build
 ```
 
-输出位于 `dist/Desktop-Pet-Player-0.4.0.exe`。
+输出位于 `dist/Desktop-Pet-Player-0.5.0.exe`。
 
 ## `.petpack` 格式
 
@@ -65,6 +65,18 @@ python skills/desktop-pet-maker/scripts/petpack_tool.py validate pets/packages/x
 
 ## 在 Codex 中制作新宠物
 
+朋友 clone 仓库并用 Codex 打开后，只需先附上照片并发送：
+
+```text
+我想制作属于自己的桌面宠物。请用选择题引导我完成。
+```
+
+Codex 会自动读取项目根目录的 `AGENTS.md` 和 `.agents/skills/desktop-pet-maker`，先说明照片要求，再分三轮收集对象/风格、动作功能、气泡/语音与交付设置。选项支持多选编号，例如 `B1,B3,F1,F4,D1`。
+
+所有可选功能默认不选，气泡与系统语音默认关闭。播放器不会再自动插入“黏人”类台词；只有资源包中明确配置的文字才会出现。
+
+完整选择目录见 `skills/desktop-pet-maker/references/intake-workflow.md`，机器可读功能模块可用 `npm run make:human -- --list-features` 查看。
+
 项目内的 `.agents/skills/desktop-pet-maker` 是 Codex 自动发现入口，实际流程与脚本位于 `skills/desktop-pet-maker`。朋友 clone 仓库后，在 Codex 中打开仓库、附上同一只宠物的 1～8 张照片，然后可直接发送：
 
 ```text
@@ -87,6 +99,32 @@ Codex 会按以下标准流程工作：
 ```
 
 原始照片和制作工作目录默认被 Git 忽略。请勿把客户照片、客户包或运行截图提交到公共仓库。
+
+## 真人桌宠功能框架
+
+真人桌宠使用构建期功能模块，不需要为每个人修改播放器代码。基础素材只要求处理好的 `idle` 4 帧和 `walk` 6 帧；选择“称呼”时增加 `reaction` 4 帧，选择“磕头”时增加 `sit` 4 帧。`sleep` 和未选择功能对应的 schema-v1 必需动作会自动复制 `idle` 帧作为兼容资源，并且不会加入随机行为。
+
+先按功能生成素材计划：
+
+```powershell
+npm run make:human -- --id lai-rongjie --name "赖荣杰" --features call-relative,kowtow --call-label "叫哥哥" --call-message "赖荣杰哥哥" --call-speech "赖荣杰哥哥" --plan-only
+```
+
+计划会给出 `processingCommand`；动画处理器通过 `--actions` 只读取所选动作，不需要为未选功能制作或伪造动画条。
+
+素材处理完成后，一键组装并验证 `.petpack`：
+
+```powershell
+npm run make:human -- --id lai-rongjie --name "赖荣杰" --frames-dir pets/work/lai-rongjie/frames --preview pets/work/lai-rongjie/preview.png --features call-relative,kowtow --call-label "叫哥哥" --call-message "赖荣杰哥哥" --call-speech "赖荣杰哥哥"
+```
+
+也可以复制 `pet-framework/examples/human-pet.example.json`，修改人物、素材路径和功能后运行：
+
+```powershell
+npm run make:human -- --config pet-framework/examples/human-pet.example.json --force
+```
+
+功能定义位于 `pet-framework/features/`。当前包含喝水、吃零食、伸懒腰、挥手、跳舞、屏幕边缘坐姿、通用称呼、磕头和粉丝问候；每个可见功能都有独立动作，气泡和系统语音默认关闭且可按功能配置。添加 `--build-exe --app-name "赖荣杰桌面宠物"` 可在资源包验证通过后继续调用客户 EXE 构建器。
 
 ## 客户专属 EXE
 
