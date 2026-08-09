@@ -72,6 +72,17 @@ function petAssetUrl(id, relative) {
   return `pet-asset://${id}/${safeRelative(relative).map(encodeURIComponent).join('/')}`;
 }
 
+function publicMenuStep(item) {
+  const result = {
+    action: item.action,
+    duration: Number.isInteger(item.duration) ? item.duration : 3000
+  };
+  if (typeof item.message === 'string') result.message = item.message;
+  if (Array.isArray(item.messages)) result.messages = item.messages.filter((message) => typeof message === 'string');
+  if (typeof item.speech === 'string') result.speech = item.speech;
+  return result;
+}
+
 function publicManifest(manifest) {
   const animations = {};
   for (const [action, config] of Object.entries(manifest.animations)) {
@@ -96,10 +107,9 @@ function publicManifest(manifest) {
       ? manifest.contextMenuActions.map((item) => ({
         id: item.id,
         label: item.label.trim(),
-        action: item.action,
-        message: typeof item.message === 'string' ? item.message : '',
-        speech: typeof item.speech === 'string' ? item.speech : '',
-        duration: Number.isInteger(item.duration) ? item.duration : 3000
+        ...(Array.isArray(item.sequence)
+          ? { sequence: item.sequence.map(publicMenuStep) }
+          : publicMenuStep(item))
       }))
       : []
   };
@@ -309,8 +319,7 @@ function runBehavior() {
     walkTo(Math.max(workArea.x, Math.min(workArea.x + workArea.width - bounds.width, bounds.x + delta)));
     return;
   }
-  const messages = { sit: '我就在这里陪你。', reaction: '别走太远……', sleep: 'z Z' };
-  sendState(behavior.state, messages[behavior.state] || '');
+  sendState(behavior.state, chooseContextMessage(behavior), behavior.speech || '');
   scheduleBehavior(duration);
 }
 
@@ -354,23 +363,42 @@ function switchPet(id) {
   updateTrayIcon();
   tray?.setContextMenu(buildTrayMenu());
   petWindow?.webContents.send('pet:load', publicManifest(next));
-  sendState('reaction', `你好，我是${next.name}。`);
+  sendState('reaction');
   scheduleBehavior(3200);
   return true;
 }
 
 function showPet() {
   petWindow?.showInactive();
-  sendState('reaction', '你回来啦！');
+  sendState('reaction');
   scheduleBehavior(3000);
 }
 
+function chooseContextMessage(item) {
+  if (Array.isArray(item.messages) && item.messages.length) {
+    return item.messages[Math.floor(Math.random() * item.messages.length)];
+  }
+  return item.message || '';
+}
+
 function runContextMenuAction(item) {
-  if (!activeManifest || !item || !activeManifest.animations[item.action]) return;
+  if (!activeManifest || !item) return;
+  const steps = Array.isArray(item.sequence) && item.sequence.length ? item.sequence : [item];
+  if (steps.some((step) => !activeManifest.animations[step.action])) return;
   stopWalk();
   if (behaviorTimer) clearTimeout(behaviorTimer);
-  sendState(item.action, item.message || '', item.speech || '');
-  scheduleBehavior(Number.isInteger(item.duration) ? item.duration : 3000);
+  let index = 0;
+  const playNext = () => {
+    if (index >= steps.length) {
+      scheduleBehavior();
+      return;
+    }
+    const step = steps[index];
+    index += 1;
+    sendState(step.action, chooseContextMessage(step), step.speech || '');
+    behaviorTimer = setTimeout(playNext, Number.isInteger(step.duration) ? step.duration : 3000);
+  };
+  playNext();
 }
 
 function buildTrayMenu() {
@@ -440,7 +468,7 @@ function createWindow() {
   petWindow.loadFile(indexPath);
   petWindow.once('ready-to-show', () => {
     petWindow.showInactive();
-    sendState('reaction', `我是${activeManifest.name}。`);
+    sendState('reaction');
     scheduleBehavior(3600);
   });
   petWindow.on('close', (event) => {
@@ -507,7 +535,7 @@ onTrusted('pet:set-mouse-through', (ignore) => {
 onTrusted('pet:interact', () => {
   stopWalk();
   if (behaviorTimer) clearTimeout(behaviorTimer);
-  sendState('reaction', '不要丢下我呀 ♥');
+  sendState('reaction');
   scheduleBehavior(3400);
 });
 onTrusted('pet:context-menu', () => {

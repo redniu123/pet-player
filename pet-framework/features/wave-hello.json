@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "wave-hello",
+  "displayName": "挥手问候",
+  "description": "播放面向用户的友好问候动作，动物可改为抬爪。",
+  "action": "wave-hello",
+  "frameCount": 4,
+  "animation": {
+    "durations": [
+      260,
+      320,
+      620,
+      1400
+    ],
+    "loop": false,
+    "holdLastFrame": true
+  },
+  "defaults": {
+    "label": "打个招呼",
+    "message": "",
+    "speech": "",
+    "duration": 3600
+  },
+  "limits": {
+    "label": 24,
+    "message": 80,
+    "speech": 20,
+    "minDuration": 600,
+    "maxDuration": 10000
+  },
+  "contextMenuAction": {
+    "id": "wave-hello",
+    "label": "${label}",
+    "action": "wave-hello",
+    "message": "${message}",
+    "speech": "${speech}",
+    "duration": "${duration}"
+  },
+  "imagePrompt": "Create exactly four front-facing greeting frames of the same subject: attentive neutral pose, beginning to raise one hand or front paw, one friendly wave, and returning toward neutral. Keep the torso and head stationary with stable scale, centroid and baseline. No text, symbols, speech bubbles or props."
+}

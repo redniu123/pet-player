@@ -1,4 +1,4 @@
 interface:
   display_name: "Desktop Pet Maker"
-  short_description: "Turn pet photos into reusable animated petpack files"
-  default_prompt: "Use $desktop-pet-maker to turn the supplied pet photos into a validated animated .petpack."
+  short_description: "Guide and build Windows desktop pets from photos"
+  default_prompt: "Use $desktop-pet-maker to guide me through feature choices and build a complete Windows desktop pet from my photos."

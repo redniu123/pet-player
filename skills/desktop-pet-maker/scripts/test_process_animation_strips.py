@@ -4,6 +4,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from PIL import Image, ImageDraw
 
@@ -15,13 +16,14 @@ from process_animation_strips import (
     alpha_geometry,
     alpha_mask,
     load_subjects,
+    main,
     render_action,
 )
 
 
 class AnimationStripSafetyTests(unittest.TestCase):
-    def make_strip(self, path: Path, mode: str = "valid") -> None:
-        cell_width, height, count = 120, 120, 4
+    def make_strip(self, path: Path, mode: str = "valid", count: int = 4) -> None:
+        cell_width, height = 120, 120
         strip = Image.new("RGBA", (cell_width * count, height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(strip)
         for index in range(count):
@@ -63,6 +65,46 @@ class AnimationStripSafetyTests(unittest.TestCase):
             self.make_strip(source, "fragment")
             with self.assertRaisesRegex(ValueError, "detached fragment"):
                 load_subjects(source, 4)
+
+    def test_selected_action_subset_does_not_require_other_strips(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            input_dir = root / "input"
+            output_dir = root / "output"
+            input_dir.mkdir()
+            self.make_strip(input_dir / "idle.png")
+            self.make_strip(input_dir / "reaction.png")
+            with patch.object(sys, "argv", [
+                "process_animation_strips.py",
+                "--input-dir", str(input_dir),
+                "--output-dir", str(output_dir),
+                "--actions", "idle,reaction",
+            ]):
+                main()
+            self.assertEqual(len(list((output_dir / "idle").glob("*.png"))), 4)
+            self.assertEqual(len(list((output_dir / "reaction").glob("*.png"))), 4)
+            self.assertFalse((output_dir / "sit").exists())
+            self.assertFalse((output_dir / "sleep").exists())
+            self.assertTrue((root / "contact-sheet.jpg").is_file())
+
+    def test_extra_action_frame_counts_are_supported(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            input_dir = root / "input"
+            output_dir = root / "output"
+            input_dir.mkdir()
+            self.make_strip(input_dir / "write-note.png")
+            with patch.object(sys, "argv", [
+                "process_animation_strips.py",
+                "--input-dir", str(input_dir),
+                "--output-dir", str(output_dir),
+                "--actions", "write-note",
+                "--frame-counts", "write-note=4",
+            ]):
+                main()
+            self.assertEqual(len(list((output_dir / "write-note").glob("*.png"))), 4)
+            self.assertTrue((root / "contact-sheet.jpg").is_file())
+
 
     def test_rendering_uses_stable_visual_centroid_and_baseline(self) -> None:
         subjects = []

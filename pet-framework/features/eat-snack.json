@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "id": "eat-snack",
+  "displayName": "吃零食",
+  "description": "播放独立吃零食动作；零食种类可在生成提示中按对象调整。",
+  "action": "eat-snack",
+  "frameCount": 6,
+  "animation": {
+    "durations": [
+      260,
+      300,
+      340,
+      420,
+      520,
+      1300
+    ],
+    "loop": false,
+    "holdLastFrame": true
+  },
+  "defaults": {
+    "label": "吃点零食",
+    "message": "",
+    "speech": "",
+    "duration": 4200
+  },
+  "limits": {
+    "label": 24,
+    "message": 80,
+    "speech": 20,
+    "minDuration": 600,
+    "maxDuration": 10000
+  },
+  "contextMenuAction": {
+    "id": "eat-snack",
+    "label": "${label}",
+    "action": "eat-snack",
+    "message": "${message}",
+    "speech": "${speech}",
+    "duration": "${duration}"
+  },
+  "imagePrompt": "Create exactly six temporally ordered frames of the same subject noticing one small appropriate snack, reaching or leaning toward it, taking a bite, chewing naturally, finishing, and returning toward the starting pose. Keep identity, body scale, visual centroid and baseline stable. Show only one small snack and no text, labels, speech bubbles, floor or unrelated props."
+}

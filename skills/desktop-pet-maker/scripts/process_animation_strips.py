@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 from collections import deque
 from math import sqrt
 from pathlib import Path
@@ -65,15 +66,15 @@ def render_action(subjects: list[Image.Image], output_root: Path, action: str) -
         canvas.save(output_dir / f"{index:02d}.png", optimize=True)
 
 
-def contact_sheet(output_root: Path) -> None:
+def contact_sheet(output_root: Path, frame_counts: dict[str, int]) -> None:
     cell_width, cell_height, label_height = 120, 112, 18
     sheet = Image.new(
         "RGB",
-        (max(FRAME_COUNTS.values()) * cell_width, len(FRAME_COUNTS) * (cell_height + label_height)),
+        (max(frame_counts.values()) * cell_width, len(frame_counts) * (cell_height + label_height)),
         "white",
     )
     draw = ImageDraw.Draw(sheet)
-    for row, (action, count) in enumerate(FRAME_COUNTS.items()):
+    for row, (action, count) in enumerate(frame_counts.items()):
         row_y = row * (cell_height + label_height)
         draw.text((4, row_y + 2), f"{action} ({count})", fill="#55483e")
         for index in range(count):
@@ -90,17 +91,51 @@ def contact_sheet(output_root: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input-dir", type=Path, required=True, help="Directory containing the five transparent action strips")
+    parser.add_argument("--input-dir", type=Path, required=True, help="Directory containing transparent action strips")
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument(
+        "--actions",
+        default=",".join(FRAME_COUNTS),
+        help="Comma-separated action subset; default processes all five standard actions",
+    )
+    parser.add_argument(
+        "--frame-counts",
+        default="",
+        help="Optional comma-separated counts for extra actions, for example write-note=4,heart=4",
+    )
     args = parser.parse_args()
+
+    action_names = [item.strip() for item in args.actions.split(",") if item.strip()]
+    if not action_names:
+        parser.error("--actions must include at least one action")
+    if len(action_names) != len(set(action_names)):
+        parser.error("--actions contains duplicates")
+    frame_counts = dict(FRAME_COUNTS)
+    for item in [part.strip() for part in args.frame_counts.split(",") if part.strip()]:
+        if "=" not in item:
+            parser.error("--frame-counts entries must use action=count")
+        action, count_text = [part.strip() for part in item.split("=", 1)]
+        if not re.fullmatch(r"[a-z0-9][a-z0-9-]{1,31}", action) or action in FRAME_COUNTS:
+            parser.error(f"invalid or reserved extra action: {action}")
+        try:
+            count = int(count_text)
+        except ValueError:
+            parser.error(f"invalid frame count for {action}: {count_text}")
+        if count < 2 or count > 12:
+            parser.error(f"frame count for {action} must be 2 to 12")
+        frame_counts[action] = count
+    unknown = [action for action in action_names if action not in frame_counts]
+    if unknown:
+        parser.error(f"unknown actions: {','.join(unknown)}")
+    selected_counts = {action: frame_counts[action] for action in action_names}
 
     loaded = {
         action: load_subjects(args.input_dir / f"{action}.png", count)
-        for action, count in FRAME_COUNTS.items()
+        for action, count in selected_counts.items()
     }
     for action, subjects in loaded.items():
         render_action(subjects, args.output_dir, action)
-    contact_sheet(args.output_dir)
+    contact_sheet(args.output_dir, selected_counts)
 
 
 def alpha_mask(image: Image.Image) -> Image.Image:
