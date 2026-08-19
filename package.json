@@ -20,7 +20,7 @@
     "build:customer": "node scripts/build-customer.js"
   },
   "devDependencies": {
-    "electron": "43.2.0",
+    "electron": "43.4.0",
     "electron-builder": "26.15.3"
   },
   "build": {
